@@ -39,8 +39,14 @@ jobs:
               '}' > capacitor.config.json
           fi
 
-      - name: Build web
-        run: npm run build
+      - name: Build web (fallback to offline)
+        run: |
+          if [ -f src/main.tsx ]; then
+            npm run build
+          else
+            mkdir -p dist
+            cp offline.html dist/index.html
+          fi
 
       - name: Add Android platform
         run: npx cap add android || true
