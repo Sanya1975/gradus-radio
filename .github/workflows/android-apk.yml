@@ -23,14 +23,43 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Build release APK
+      - name: Install dependencies
+        run: npm install
+
+      - name: Ensure capacitor config exists
         run: |
-          chmod +x scripts/build-android-one-apk.sh
-          ./scripts/build-android-one-apk.sh
+          if [ ! -f capacitor.config.ts ]; then
+            cat > capacitor.config.ts << 'EOF'
+            import type { CapacitorConfig } from "@capacitor/cli";
+
+            const config: CapacitorConfig = {
+              appId: "com.gradus.radio",
+              appName: "Градус",
+              webDir: "dist"
+            };
+
+            export default config;
+            EOF
+          fi
+
+      - name: Build web
+        run: npm run build
+
+      - name: Add Android platform
+        run: npx cap add android || true
+
+      - name: Sync Android
+        run: npx cap sync android
+
+      - name: Build debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: gradus-android-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
