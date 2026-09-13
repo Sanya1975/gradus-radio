@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Градус — интернет-радио России</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111216'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial,sans-serif' font-size='20' fill='white'%3Ei%3C/text%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, Arial, sans-serif;
+        transition: background 0.25s ease, color 0.25s ease;
+      }
+      .app {
+        min-height: 100vh;
+        padding: 18px;
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+      .head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .brand {
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+      .sub {
+        margin: 4px 0 0;
+        opacity: 0.72;
+        font-size: 13px;
+      }
+      .panel {
+        margin-top: 14px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 20px;
+        padding: 14px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        background: var(--btn-muted);
+        color: var(--text);
+      }
+      .btn.active,
+      .station.active {
+        background: var(--btn-active);
+        color: var(--btn-active-text);
+      }
+      .btn.play {
+        background: var(--btn-play);
+        color: var(--btn-play-text);
+        font-weight: 600;
+      }
+      .station-list {
+        margin-top: 10px;
+        display: grid;
+        gap: 7px;
+      }
+      .station {
+        width: 100%;
+        border: 0;
+        text-align: left;
+        border-radius: 14px;
+        padding: 10px 12px;
+        background: var(--row);
+        color: var(--text);
+        cursor: pointer;
+      }
+      .station small {
+        display: block;
+        margin-top: 2px;
+        opacity: 0.72;
+      }
+      .meta {
+        margin: 10px 0 4px;
+        font-size: 14px;
+      }
+      .status {
+        margin-top: 10px;
+        font-size: 13px;
+        opacity: 0.84;
+      }
+      .volume {
+        width: 180px;
+      }
+      .light {
+        --bg: #f4f4f1;
+        --text: #19191d;
+        --panel: #ffffffd9;
+        --border: #d9d9dd;
+        --btn-muted: #e7e7eb;
+        --btn-active: #19191d;
+        --btn-active-text: #f8f8fb;
+        --btn-play: #19191d;
+        --btn-play-text: #f8f8fb;
+        --row: #ececf1;
+      }
+      .dark {
+        --bg: #101216;
+        --text: #ececf0;
+        --panel: #191c22d9;
+        --border: #2e3340;
+        --btn-muted: #2c3038;
+        --btn-active: #ececf0;
+        --btn-active-text: #1b1e24;
+        --btn-play: #ececf0;
+        --btn-play-text: #1b1e24;
+        --row: #2a2f38;
+      }
+      .moon {
+        --bg: #231c0c;
+        --text: #f4e6bf;
+        --panel: #332a14da;
+        --border: #514225;
+        --btn-muted: #4b3d1d;
+        --btn-active: #f0d98d;
+        --btn-active-text: #2c230f;
+        --btn-play: #f0d98d;
+        --btn-play-text: #2c230f;
+        --row: #47391b;
+      }
+      .dawn {
+        --bg: #262b32;
+        --text: #e6ebf2;
+        --panel: #313742db;
+        --border: #4a5564;
+        --btn-muted: #485160;
+        --btn-active: #e0e9f5;
+        --btn-active-text: #222a34;
+        --btn-play: #e0e9f5;
+        --btn-play-text: #222a34;
+        --row: #3f4755;
+      }
+    </style>
+  </head>
+  <body class="dark" style="background: var(--bg); color: var(--text)">
+    <div class="app">
+      <div class="wrap">
+        <header class="head">
+          <div>
+            <h1 class="brand">Градус</h1>
+            <p class="sub">интернет-радио: русское, шансон, клубная, транс</p>
+          </div>
+          <div id="themes" class="row"></div>
+        </header>
+
+        <main class="panel">
+          <div class="row" style="justify-content: space-between">
+            <div>
+              <strong id="now">Станция не выбрана</strong>
+              <p class="meta" id="meta"></p>
+            </div>
+            <div class="row">
+              <button class="btn play" id="playBtn" type="button">Слушать</button>
+              <button class="btn" id="refreshBtn" type="button">Обновить</button>
+              <input id="volume" class="volume" type="range" min="0" max="1" step="0.01" />
+            </div>
+          </div>
+
+          <div id="genres" class="row" style="margin-top: 8px"></div>
+          <div id="stations" class="station-list"></div>
+          <p id="status" class="status">Готово</p>
+        </main>
+      </div>
+    </div>
+
+    <audio id="audio" preload="none"></audio>
+
+    <script>
+      const stations = [
+        { name: "Русское Радио", city: "Москва", genre: "Русское", streams: ["https://rusradio.hostingradio.ru/rusradio128.mp3"] },
+        { name: "Радио Дача", city: "Москва", genre: "Русское", streams: ["http://listen13.vdfm.ru:8000/dacha"] },
+        { name: "Вести FM", city: "Москва", genre: "Русское", streams: ["http://icecast.vgtrk.cdnvideo.ru/vestifm_mp3_128kbps"] },
+        { name: "Радио Шансон", city: "Москва", genre: "Шансон", streams: ["https://chanson.hostingradio.ru:8041/chanson256.mp3", "https://chanson.hostingradio.ru:8041/chanson128.mp3"] },
+        { name: "Шансон Без Цензуры", city: "Россия", genre: "Шансон", streams: ["https://chanson.hostingradio.ru:8041/chanson-uncensored256.mp3"] },
+        { name: "Романтический Шансон", city: "Россия", genre: "Шансон", streams: ["https://chanson.hostingradio.ru:8041/chanson-romantic256.mp3"] },
+        { name: "Радио Рекорд", city: "Санкт-Петербург", genre: "Клубная", streams: ["https://air.unmixed.ru/record320"] },
+        { name: "L-Radio", city: "Россия", genre: "Клубная", streams: ["https://air.unmixed.ru/lradio256"] },
+        { name: "DFM Дискач 90-х", city: "Москва", genre: "Клубная", streams: ["https://dfm-disc90.hostingradio.ru/disc9096.aacp"] },
+        { name: "DFM Russian Dance", city: "Москва", genre: "Клубная", streams: ["https://dfm-dfmrusdance.hostingradio.ru/dfmrusdance96.aacp"] },
+        { name: "Mixadance FM", city: "Россия", genre: "Клубная", streams: ["https://stream.mixadance.fm/mixadance"] },
+        { name: "Record Trancemission", city: "Санкт-Петербург", genre: "Транс", streams: ["https://radiorecord.hostingradio.ru/tm96.aacp"] },
+        { name: "Record Goa/Psy", city: "Санкт-Петербург", genre: "Транс", streams: ["https://radiorecord.hostingradio.ru/goa96.aacp"] },
+        { name: "DFM Vocal Trance", city: "Москва", genre: "Транс", streams: ["https://dfm-trance.hostingradio.ru/trance96.aacp"] },
+        { name: "Anima Amoris", city: "Россия", genre: "Транс", streams: ["http://amoris.sknt.ru/goa.mp3"] }
+      ];
+
+      const themes = [
+        { key: "light", label: "Светлая" },
+        { key: "dark", label: "Тёмная" },
+        { key: "moon", label: "Лунная ночь" },
+        { key: "dawn", label: "Рассвет" }
+      ];
+
+      const genres = ["Русское", "Шансон", "Клубная", "Транс"];
+      const audio = document.getElementById("audio");
+      const status = document.getElementById("status");
+      const now = document.getElementById("now");
+      const meta = document.getElementById("meta");
+      const playBtn = document.getElementById("playBtn");
+      const refreshBtn = document.getElementById("refreshBtn");
+      const volume = document.getElementById("volume");
+      const themeBox = document.getElementById("themes");
+      const genreBox = document.getElementById("genres");
+      const stationBox = document.getElementById("stations");
+
+      let theme = localStorage.getItem("gradus-theme") || "dark";
+      let genre = "Русское";
+      let stationName = localStorage.getItem("gradus-station") || stations[0].name;
+      let streamIndex = 0;
+
+      function currentStation() {
+        return stations.find((s) => s.name === stationName) || stations[0];
+      }
+
+      function applyTheme() {
+        document.body.className = theme;
+        document.body.style.background = "var(--bg)";
+        document.body.style.color = "var(--text)";
+      }
+
+      function renderThemes() {
+        themeBox.innerHTML = "";
+        themes.forEach((t) => {
+          const b = document.createElement("button");
+          b.className = "btn" + (t.key === theme ? " active" : "");
+          b.textContent = t.label;
+          b.onclick = () => {
+            theme = t.key;
+            localStorage.setItem("gradus-theme", theme);
+            applyTheme();
+            renderThemes();
+          };
+          themeBox.appendChild(b);
+        });
+      }
+
+      function renderGenres() {
+        genreBox.innerHTML = "";
+        genres.forEach((g) => {
+          const b = document.createElement("button");
+          b.className = "btn" + (g === genre ? " active" : "");
+          b.textContent = g;
+          b.onclick = () => {
+            genre = g;
+            renderGenres();
+            renderStations();
+          };
+          genreBox.appendChild(b);
+        });
+      }
+
+      function renderStations() {
+        stationBox.innerHTML = "";
+        stations.filter((s) => s.genre === genre).forEach((s) => {
+          const b = document.createElement("button");
+          b.className = "station" + (s.name === stationName ? " active" : "");
+          b.innerHTML = `<strong>${s.name}</strong><small>${s.city}</small>`;
+          b.onclick = () => {
+            stationName = s.name;
+            streamIndex = 0;
+            localStorage.setItem("gradus-station", stationName);
+            syncStation();
+            renderStations();
+            if (!audio.paused) {
+              audio.play().catch(() => {
+                status.textContent = "Нажмите «Слушать» повторно";
+              });
+            }
+          };
+          stationBox.appendChild(b);
+        });
+      }
+
+      function syncStation() {
+        const s = currentStation();
+        now.textContent = s.name;
+        meta.textContent = `${s.genre} · ${s.city}`;
+        audio.src = s.streams[streamIndex] || s.streams[0];
+      }
+
+      playBtn.onclick = async () => {
+        if (audio.paused) {
+          try {
+            await audio.play();
+            status.textContent = `В эфире: ${currentStation().name}`;
+            playBtn.textContent = "Пауза";
+          } catch {
+            status.textContent = "Запуск заблокирован браузером. Нажмите еще раз.";
+          }
+        } else {
+          audio.pause();
+          playBtn.textContent = "Слушать";
+          status.textContent = "Пауза";
+        }
+      };
+
+      refreshBtn.onclick = () => {
+        audio.load();
+        if (!audio.paused) {
+          audio.play().catch(() => {});
+        }
+        status.textContent = "Поток обновлен";
+      };
+
+      audio.onerror = () => {
+        const s = currentStation();
+        const next = streamIndex + 1;
+        if (next < s.streams.length) {
+          streamIndex = next;
+          syncStation();
+          audio.play().catch(() => {});
+          status.textContent = "Переключились на резервный поток";
+          return;
+        }
+        status.textContent = "Поток недоступен, выберите другую станцию";
+        playBtn.textContent = "Слушать";
+      };
+
+      audio.onpause = () => {
+        playBtn.textContent = "Слушать";
+      };
+
+      audio.onplaying = () => {
+        playBtn.textContent = "Пауза";
+      };
+
+      volume.value = localStorage.getItem("gradus-volume") || "0.8";
+      audio.volume = Number(volume.value);
+      volume.oninput = () => {
+        audio.volume = Number(volume.value);
+        localStorage.setItem("gradus-volume", volume.value);
+      };
+
+      applyTheme();
+      renderThemes();
+      syncStation();
+      genre = currentStation().genre;
+      renderGenres();
+      renderStations();
+      status.textContent = "Готово к воспроизведению";
+    </script>
+  </body>
+</html>

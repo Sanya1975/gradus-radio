@@ -1,0 +1,6 @@
+node_modules
+dist
+android/.gradle
+android/local.properties
+android/key.properties
+android/app/gradus-release.keystore
