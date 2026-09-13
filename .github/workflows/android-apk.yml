@@ -14,17 +14,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/assets
 
       - name: Ensure capacitor config exists
         run: |
@@ -34,7 +36,7 @@ jobs:
 
             const config: CapacitorConfig = {
               appId: "com.gradus.radio",
-              appName: "Градус",
+              appName: "Gradus",
               webDir: "dist"
             };
 
@@ -47,6 +49,9 @@ jobs:
 
       - name: Add Android platform
         run: npx cap add android || true
+
+      - name: Generate app icons
+        run: npx @capacitor/assets generate --android || true
 
       - name: Sync Android
         run: npx cap sync android
